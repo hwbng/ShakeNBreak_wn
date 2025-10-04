@@ -310,8 +310,8 @@ def distort(
         bond_distorted_defect["defect_frac_coords"] = frac_coords
 
     if verbose:
-        distorted_info = [(round(i[0], 2), i[1], i[2]) for i in distorted]
-        nearest_info = [(round(i[0], 2), i[1], i[2]) for i in nns_to_distort]  # round numbers
+        distorted_info = [(float(round(i[0], 2)), i[1], i[2]) for i in distorted]
+        nearest_info = [(float(round(i[0], 2)), i[1], i[2]) for i in nns_to_distort]  # round numbers
         site_index_or_frac_coords = (
             site_index if site_index is not None else np.around(frac_coords, decimals=3)
         )
@@ -565,8 +565,8 @@ def rattle(
         if stdev > 0.4 or stdev < 0.02:
             warnings.warn(
                 f"Automatic bond-length detection gave a bulk bond length of {10 * stdev} "
-                f"\u212B and thus a rattle `stdev` of {stdev} ( = 10% bond length), "
-                f"which is unreasonable. Reverting to 0.25 \u212B. If this is too large, "
+                f"\u212b and thus a rattle `stdev` of {stdev} ( = 10% bond length), "
+                f"which is unreasonable. Reverting to 0.25 \u212b. If this is too large, "
                 f"set `stdev` manually"
             )
             stdev = 0.25
@@ -576,8 +576,8 @@ def rattle(
         if d_min < 1.0:
             warnings.warn(
                 f"Automatic bond-length detection gave a bulk bond length of "
-                f"{(1/0.8)*d_min} \u212B, which is almost certainly too small. "
-                f"Reverting to 2.25 \u212B. If this is too large, set `d_min` manually"
+                f"{(1/0.8)*d_min} \u212b, which is almost certainly too small. "
+                f"Reverting to 2.25 \u212b. If this is too large, set `d_min` manually"
             )
             d_min = 2.25
 
@@ -625,8 +625,8 @@ def rattle(
 
         if verbose:
             warnings.warn(
-                f"Initial rattle with d_min {d_min:.2f} \u212B failed (some bond lengths significantly "
-                f"smaller than this present), setting d_min to {reduced_d_min:.2f} \u212B for this defect."
+                f"Initial rattle with d_min {d_min:.2f} \u212b failed (some bond lengths significantly "
+                f"smaller than this present), setting d_min to {reduced_d_min:.2f} \u212b for this defect."
             )
 
     return Structure.from_ase_atoms(rattled_ase_struct)
@@ -1105,8 +1105,8 @@ def local_mc_rattle(
         if stdev > 0.4 or stdev < 0.02:
             warnings.warn(
                 f"Automatic bond-length detection gave a bulk bond length of {10 * stdev} "
-                f"\u212B and thus a rattle `stdev` of {stdev} ( = 10% bond length), "
-                f"which is unreasonable. Reverting to 0.25 \u212B. If this is too large, "
+                f"\u212b and thus a rattle `stdev` of {stdev} ( = 10% bond length), "
+                f"which is unreasonable. Reverting to 0.25 \u212b. If this is too large, "
                 f"set `stdev` manually"
             )
             stdev = 0.25
@@ -1117,8 +1117,8 @@ def local_mc_rattle(
         if d_min < 1.0:
             warnings.warn(
                 f"Automatic bond-length detection gave a bulk bond length of "
-                f"{(1 / 0.8) * d_min} \u212B, which is almost certainly too small. "
-                f"Reverting to 2.25 \u212B. If this is too large, set `d_min` manually"
+                f"{(1 / 0.8) * d_min} \u212b, which is almost certainly too small. "
+                f"Reverting to 2.25 \u212b. If this is too large, set `d_min` manually"
             )
             d_min = 2.25
 
@@ -1160,9 +1160,9 @@ def local_mc_rattle(
 
         if verbose:
             warnings.warn(
-                f"Initial rattle with d_min {d_min:.2f} \u212B failed (some bond lengths "
+                f"Initial rattle with d_min {d_min:.2f} \u212b failed (some bond lengths "
                 f"significantly smaller than this present), setting d_min to"
-                f" {reduced_d_min:.2f} \u212B for this defect."
+                f" {reduced_d_min:.2f} \u212b for this defect."
             )
 
     if isinstance(frac_coords, np.ndarray):

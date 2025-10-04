@@ -13,7 +13,7 @@ import numpy as np
 from ase.build import bulk, make_supercell
 from ase.io import read
 from doped.generation import get_defect_name_from_entry
-from doped.vasp import _test_potcar_functional_choice, DefectRelaxSet
+from doped.vasp import DefectRelaxSet, _test_potcar_functional_choice
 from monty.serialization import dumpfn, loadfn
 from pymatgen.analysis.defects.generators import VacancyGenerator
 from pymatgen.analysis.defects.thermo import DefectEntry
@@ -21,11 +21,12 @@ from pymatgen.core.periodic_table import DummySpecies
 from pymatgen.core.structure import Composition, PeriodicSite, Structure
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.io.vasp.inputs import Poscar, UnknownPotcarWarning, Incar, Kpoints, Potcar
+from pymatgen.io.vasp.inputs import (Incar, Kpoints, Poscar, Potcar,
+                                     UnknownPotcarWarning)
 
 from shakenbreak import input
 from shakenbreak.analysis import get_homoionic_bonds
-from shakenbreak.distortions import rattle, distort, apply_dimer_distortion
+from shakenbreak.distortions import apply_dimer_distortion, distort, rattle
 
 
 def if_present_rm(path):
@@ -1537,10 +1538,10 @@ class InputTestCase(unittest.TestCase):
         print(mock_print.call_args_list)  # for debugging
         mock_print.assert_called_once_with(
             "Oxidation states were not explicitly set, thus have been guessed as "
-            "{'Cu': 0, 'Ag': 0}. If this is unreasonable you should manually set oxidation_states"
+            "{'Cu': 0.0, 'Ag': 0.0}. If this is unreasonable you should manually set oxidation_states"
         )
 
-        self.assertEqual(dist.oxidation_states, {"Cu": 0, "Ag": 0})
+        self.assertEqual(dist.oxidation_states, {"Cu": 0.0, "Ag": 0.0})
         self.assertAlmostEqual(dist.stdev, 0.2552655480083435)
         self.assertIn("v_Cu", dist.defects_dict)
         self.assertIn("v_Ag", dist.defects_dict)
