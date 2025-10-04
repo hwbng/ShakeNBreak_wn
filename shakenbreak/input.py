@@ -1894,7 +1894,7 @@ class Distortions:
             struct_with_oxi = guess_and_set_oxi_states_with_timeout(
                 bulk_struct, break_early_if_expensive=True
             )
-            guessed_oxidation_states = {elt.symbol: elt.oxi_state for elt in struct_with_oxi.elements}
+            guessed_oxidation_states = {elt.symbol: float(elt.oxi_state) for elt in struct_with_oxi.elements}
             # guessed_oxidation_states is False if unsuccessful
             if guessed_oxidation_states:
                 return guessed_oxidation_states
