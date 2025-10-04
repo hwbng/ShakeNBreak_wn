@@ -1891,18 +1891,20 @@ class Distortions:
             )
 
         # Check if all expected oxidation states are provided
-        def guess_oxidation_states(bulk_comp):
-            for max_sites in (-1, None):
-                try:
-                    guessed_oxidation_states = bulk_comp.oxi_state_guesses(max_sites=max_sites)[0]
-                    if guessed_oxidation_states:
-                        return guessed_oxidation_states
-                except IndexError:
-                    continue
-            # pmg oxi state guessing can fail for single-element systems, intermetallics etc
-            return {elt.symbol: 0 for elt in bulk_comp.elements}
+        def guess_oxidation_states(bulk_struct):
+            struct_with_oxi = guess_and_set_oxi_states_with_timeout(
+                bulk_struct,break_early_if_expensive=True
+            )
+            guessed_oxidation_states = {
+                    elt.symbol: elt.oxi_state for elt in struct_with_oxi.elements
+                }
+            # guessed_oxidation_states is False if unsuccessful
+            if guessed_oxidation_states != False:  
+                return guessed_oxidation_states
+            else: 
+                return {elt.symbol: 0 for elt in bulk_struct.composition.elements}
 
-        guessed_oxidation_states = guess_oxidation_states(bulk_comp)
+        guessed_oxidation_states = guess_oxidation_states(defect_object.structure)
 
         for list_of_defect_entries in self.defects_dict.values():
             defect = list_of_defect_entries[0].defect
