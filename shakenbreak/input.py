@@ -1859,7 +1859,6 @@ class Distortions:
 
         list_of_defect_entries = next(iter(self.defects_dict.values()))
         defect_object = list_of_defect_entries[0].defect
-        bulk_comp = defect_object.structure.composition
         if "stdev" in mc_rattle_kwargs:
             self.stdev = mc_rattle_kwargs.pop("stdev")
         else:
@@ -1893,16 +1892,13 @@ class Distortions:
         # Check if all expected oxidation states are provided
         def guess_oxidation_states(bulk_struct):
             struct_with_oxi = guess_and_set_oxi_states_with_timeout(
-                bulk_struct,break_early_if_expensive=True
+                bulk_struct, break_early_if_expensive=True
             )
-            guessed_oxidation_states = {
-                    elt.symbol: elt.oxi_state for elt in struct_with_oxi.elements
-                }
+            guessed_oxidation_states = {elt.symbol: elt.oxi_state for elt in struct_with_oxi.elements}
             # guessed_oxidation_states is False if unsuccessful
-            if guessed_oxidation_states != False:  
+            if guessed_oxidation_states:
                 return guessed_oxidation_states
-            else: 
-                return {elt.symbol: 0 for elt in bulk_struct.composition.elements}
+            return {elt.symbol: 0 for elt in bulk_struct.composition.elements}
 
         guessed_oxidation_states = guess_oxidation_states(defect_object.structure)
 
