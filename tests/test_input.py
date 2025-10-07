@@ -1500,7 +1500,6 @@ class InputTestCase(unittest.TestCase):
     def test_Distortions_intermetallic(self):
         # test initialising Distortions with an intermetallic
         # (where pymatgen oxidation state guessing fails)
-        # (new doped oxi state guesser returns +1 instead of the 0 dict)
         # also serves to test the DefectEntry generation workflow in the example notebook
         atoms = bulk("Cu")
         atoms = make_supercell(atoms, [[2, 0, 0], [0, 2, 0], [0, 0, 2]])

@@ -1898,11 +1898,16 @@ class Distortions:
             # struct_with_oxi returns False if guessing fails 
             if struct_with_oxi:
                 guessed_oxidation_states = {elt.symbol: int(elt.oxi_state) for elt in struct_with_oxi.elements} 
-                # Get all elements in 
+
                 elts = [
                         elt.symbol for elt in struct_with_oxi.elements
                 ]
-                dupe_elts = set([elt for elt in elts if elts.count(elt)>1]) 
+
+                # Check for elements with multiple ox states which have not been inputted
+                if self.oxidation_states:
+                    dupe_elts = set([elt for elt in elts if elts.count(elt)>1 and elt not in self.oxidation_states.keys()]) 
+                else: 
+                    dupe_elts = set([elt for elt in elts if elts.count(elt)>1])
                 # Check if dupe_elts is not empty
                 if dupe_elts: 
                     print(
@@ -1921,17 +1926,15 @@ class Distortions:
         else defect_entry.defect.structure.elements
         )
 
-        # No oxidation states supplied
+        # Oxidation guessing only if oxidation states are not fully supplied
         if self.oxidation_states is None:
             guessed_oxidation_states = guess_oxidation_states(defect_entry.defect.structure)
-        # Partial oxidation states supplied
-            # Are all elements of elt.symbol in self.oxidation_states?
-        elif not set(self.oxidation_states.keys()) > set([elt.symbol for elt in defect_elts]): 
+        elif not set(self.oxidation_states.keys()) >= set([elt.symbol for elt in defect_elts]): 
+            # Checks if all defect elements are in the provided oxidation states
             guessed_oxidation_states = guess_oxidation_states(defect_entry.defect.structure)
-        # Full oxidation states supplied
         else:
             guessed_oxidation_states = self.oxidation_states
-
+        
         for list_of_defect_entries in self.defects_dict.values():
             defect = list_of_defect_entries[0].defect
             if defect.site.specie.symbol not in guessed_oxidation_states:
