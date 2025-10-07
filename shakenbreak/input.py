@@ -18,20 +18,21 @@ import ase
 import numpy as np
 from ase.calculators.castep import Castep
 from doped import _ignore_pmg_warnings
-from doped.core import Defect, DefectEntry, guess_and_set_oxi_states_with_timeout
+from doped.core import (Defect, DefectEntry,
+                        guess_and_set_oxi_states_with_timeout)
 from doped.generation import DefectsGenerator, name_defect_entries
 from doped.utils.efficiency import StructureMatcher_scan_stol
 from doped.utils.parsing import (
     get_defect_type_and_composition_diff,
-    get_defect_type_site_idxs_and_unrelaxed_structure,
-)
+    get_defect_type_site_idxs_and_unrelaxed_structure)
 from doped.vasp import DefectDictSet
 from monty.json import MontyDecoder
 from monty.serialization import dumpfn, loadfn
 from pymatgen.analysis.defects import thermo
 from pymatgen.analysis.defects.supercells import get_sc_fromstruct
 from pymatgen.analysis.structure_matcher import ElementComparator
-from pymatgen.core.structure import Composition, Element, PeriodicSite, Structure
+from pymatgen.core.structure import (Composition, Element, PeriodicSite,
+                                     Structure)
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.cp2k.inputs import Cp2kInput
@@ -1858,11 +1859,11 @@ class Distortions:
             )
 
         list_of_defect_entries = next(iter(self.defects_dict.values()))
-        defect_object = list_of_defect_entries[0].defect
+        defect_entry = list_of_defect_entries[0]
         if "stdev" in mc_rattle_kwargs:
             self.stdev = mc_rattle_kwargs.pop("stdev")
         else:
-            bulk_primitive = defect_object.structure
+            bulk_primitive = defect_entry.defect.structure
             sorted_distances = np.sort(bulk_primitive.distance_matrix.flatten())
             # get first finite distance:
             try:
@@ -1890,23 +1891,54 @@ class Distortions:
             )
 
         # Check if all expected oxidation states are provided
-        def guess_oxidation_states(bulk_struct):
+        def guess_oxidation_states(bulk_structure):
             struct_with_oxi = guess_and_set_oxi_states_with_timeout(
-                bulk_struct, break_early_if_expensive=True
+                bulk_structure, break_early_if_expensive=True
             )
             # struct_with_oxi returns False if guessing fails 
             if struct_with_oxi:
-                return {elt.symbol: float(elt.oxi_state) for elt in struct_with_oxi.elements}
-            return {elt.symbol: 0.0 for elt in bulk_struct.composition.elements}
+                guessed_oxidation_states = {elt.symbol: int(elt.oxi_state) for elt in struct_with_oxi.elements} 
+                # Get all elements in 
+                elts = [
+                        elt.symbol for elt in struct_with_oxi.elements
+                ]
+                dupe_elts = set([elt for elt in elts if elts.count(elt)>1]) 
+                # Check if dupe_elts is not empty
+                if dupe_elts: 
+                    print(
+                        f"Warning: Multiple oxidation states have been guessed for {dupe_elts}. The most common "
+                        f"oxidation state will be used for these elements."
+                    )
+                    # If dupe_elts is not empty, guess common oxidation state for these elements
+                    for elt in dupe_elts:
+                        likely_oxi = int(_most_common_oxi(elt))
+                        guessed_oxidation_states[elt] = likely_oxi
+                    return guessed_oxidation_states
+            # If guessing fails, fall back to most common oxidation states
+            return {elt.symbol: int(_most_common_oxi(elt.symbol)) for elt in bulk_structure.elements}
 
-        guessed_oxidation_states = guess_oxidation_states(defect_object.structure)
+        try:
+            defect_elts = defect_entry.defect_supercell.elements
+        except:
+            defect_elts = defect_entry.defect.structure.elements
+
+        # No oxidation states supplied
+        if self.oxidation_states is None:
+            guessed_oxidation_states = guess_oxidation_states(defect_entry.defect.structure)
+        # Partial oxidation states supplied
+            # Are all elements of elt.symbol in self.oxidation_states?
+        elif not set(self.oxidation_states.keys()) > set([elt.symbol for elt in defect_elts]): 
+            guessed_oxidation_states = guess_oxidation_states(defect_entry.defect.structure)
+        # Full oxidation states supplied
+        else:
+            guessed_oxidation_states = self.oxidation_states
 
         for list_of_defect_entries in self.defects_dict.values():
             defect = list_of_defect_entries[0].defect
             if defect.site.specie.symbol not in guessed_oxidation_states:
                 # extrinsic substituting/interstitial species not in bulk composition
                 extrinsic_specie = defect.site.specie.symbol
-                likely_substitution_oxi = _most_common_oxi(extrinsic_specie)
+                likely_substitution_oxi = int(_most_common_oxi(extrinsic_specie))
                 guessed_oxidation_states[extrinsic_specie] = likely_substitution_oxi
 
         if self.oxidation_states is None:
@@ -1917,7 +1949,8 @@ class Distortions:
             )
             self.oxidation_states = guessed_oxidation_states
 
-        elif guessed_oxidation_states.keys() > self.oxidation_states.keys():
+        # Check elements that have been guessed but not inputted (missing oxidation states)
+        elif guessed_oxidation_states.keys() - self.oxidation_states.keys():
             # some oxidation states are missing, so use guessed versions for these and inform user
             missing_oxidation_states = {
                 k: v
@@ -1930,6 +1963,9 @@ class Distortions:
                 f"should manually set oxidation_states"
             )
             self.oxidation_states.update(missing_oxidation_states)
+
+
+
 
         # Setup distortion parameters
         if bond_distortions:
@@ -2659,7 +2695,8 @@ class Distortions:
         """
         try:
             old_ase = False  # >=3.23
-            from ase.calculators.espresso import EspressoProfile, EspressoTemplate
+            from ase.calculators.espresso import (EspressoProfile,
+                                                  EspressoTemplate)
         except ImportError:
             old_ase = True
             from ase.calculators.espresso import Espresso
