@@ -1916,10 +1916,10 @@ class Distortions:
                 return guessed_oxidation_states
             return {elt.symbol: int(_most_common_oxi(elt.symbol)) for elt in bulk_structure.elements}
 
-        try:
-            defect_elts = defect_entry.defect_supercell.elements
-        except:
-            defect_elts = defect_entry.defect.structure.elements
+        defect_elts = ( 
+        defect_entry.defect_supercell.elements if hasattr(defect_entry, "defect_supercell")
+        else defect_entry.defect.structure.elements
+        )
 
         # No oxidation states supplied
         if self.oxidation_states is None:

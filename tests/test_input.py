@@ -1397,12 +1397,6 @@ class InputTestCase(unittest.TestCase):
                 "Cl": -1,
             },
         )
-        # BUG: FIX THIS LATER
-        # mock_print.assert_called_once_with(
-        #     "Oxidation states for ['Al', 'Cl', 'Sb'] were not explicitly set, thus have been "
-        #     "guessed as {'Al': 3, 'Cl': -1, 'Sb': 0}. If this is unreasonable you should "
-        #     "manually set oxidation_states"
-        # )
 
         # test no print statement when all oxidation states set
 
