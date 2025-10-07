@@ -18,8 +18,7 @@ import ase
 import numpy as np
 from ase.calculators.castep import Castep
 from doped import _ignore_pmg_warnings
-from doped.core import (Defect, DefectEntry,
-                        guess_and_set_oxi_states_with_timeout)
+from doped.core import Defect, DefectEntry, guess_and_set_oxi_states_with_timeout
 from doped.generation import DefectsGenerator, name_defect_entries
 from doped.utils.efficiency import StructureMatcher_scan_stol
 from doped.utils.parsing import (
@@ -31,8 +30,7 @@ from monty.serialization import dumpfn, loadfn
 from pymatgen.analysis.defects import thermo
 from pymatgen.analysis.defects.supercells import get_sc_fromstruct
 from pymatgen.analysis.structure_matcher import ElementComparator
-from pymatgen.core.structure import (Composition, Element, PeriodicSite,
-                                     Structure)
+from pymatgen.core.structure import Composition, Element, PeriodicSite, Structure
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.cp2k.inputs import Cp2kInput
@@ -1898,11 +1896,7 @@ class Distortions:
             # struct_with_oxi returns False if guessing fails 
             if struct_with_oxi:
                 guessed_oxidation_states = {elt.symbol: int(elt.oxi_state) for elt in struct_with_oxi.elements} 
-
-                elts = [
-                        elt.symbol for elt in struct_with_oxi.elements
-                ]
-
+                elts = [elt.symbol for elt in struct_with_oxi.elements]
                 # Check for elements with multiple ox states which have not been inputted
                 if self.oxidation_states:
                     dupe_elts = set([elt for elt in elts if elts.count(elt)>1 and elt not in self.oxidation_states.keys()]) 
