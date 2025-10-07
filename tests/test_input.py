@@ -1490,15 +1490,15 @@ class InputTestCase(unittest.TestCase):
             )
         print(mock_print.call_args_list)  # for debugging
         oxi_state_warning_message = (
-            "Oxidation states were not explicitly set, thus have been guessed as {'Cu': 1}. If "
+            "Oxidation states were not explicitly set, thus have been guessed as {'Cu': 0}. If "
             "this is unreasonable you should manually set oxidation_states"
         )
         try:
             mock_print.assert_called_once_with(oxi_state_warning_message)
         except AssertionError:
-            mock_print.assert_any_call(oxi_state_warning_message.replace("1.0", "1"))
+            mock_print.assert_any_call(oxi_state_warning_message.replace("0.0", "0"))
 
-        self.assertEqual(dist.oxidation_states, {"Cu": 1})
+        self.assertEqual(dist.oxidation_states, {"Cu": 0})
         self.assertAlmostEqual(dist.stdev, 0.2529625487091717)
         self.assertIn("v_Cu", dist.defects_dict)
         self.assertEqual(len(dist.defects_dict["v_Cu"][0].sc_entry.structure), 107)
@@ -1540,10 +1540,10 @@ class InputTestCase(unittest.TestCase):
         print(mock_print.call_args_list)  # for debugging
         mock_print.assert_called_once_with(
             "Oxidation states were not explicitly set, thus have been guessed as "
-            "{'Cu': 1, 'Ag': 1}. If this is unreasonable you should manually set oxidation_states"
+            "{'Cu': 0, 'Ag': 0}. If this is unreasonable you should manually set oxidation_states"
         )
 
-        self.assertEqual(dist.oxidation_states, {"Cu": 1, "Ag": 1})
+        self.assertEqual(dist.oxidation_states, {"Cu": 0, "Ag": 0})
         self.assertAlmostEqual(dist.stdev, 0.2552655480083435)
         self.assertIn("v_Cu", dist.defects_dict)
         self.assertIn("v_Ag", dist.defects_dict)

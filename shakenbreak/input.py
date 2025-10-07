@@ -1913,8 +1913,7 @@ class Distortions:
                     for elt in dupe_elts:
                         likely_oxi = int(_most_common_oxi(elt))
                         guessed_oxidation_states[elt] = likely_oxi
-                    return guessed_oxidation_states
-            # If guessing fails, fall back to most common oxidation states
+                return guessed_oxidation_states
             return {elt.symbol: int(_most_common_oxi(elt.symbol)) for elt in bulk_structure.elements}
 
         try:
