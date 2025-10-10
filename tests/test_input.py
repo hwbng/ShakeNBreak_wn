@@ -425,6 +425,8 @@ class InputTestCase(unittest.TestCase):
         # Generate a defect entry for each charge state
         cls.V_Cd_in_CdSeTe_entry = input._get_defect_entry_from_defect(defect=defect, charge_state=0)
 
+        cls.Fe3O4_defect_entry = loadfn(f"{cls.DATA_DIR}/Fe3O4_v_Fe.json")
+
     def tearDown(self) -> None:
         # reset locale:
         try:
@@ -478,32 +480,32 @@ class InputTestCase(unittest.TestCase):
         self.assertEqual(Int_Cd_comp, Composition("Cd32Te32"))
 
     def test_most_common_oxi(self):
-        self.assertEqual(input._most_common_oxi("Cd"), +2)
-        self.assertEqual(input._most_common_oxi("Te"), -2)
-        self.assertEqual(input._most_common_oxi("Cl"), -1)
-        self.assertEqual(input._most_common_oxi("Al"), +3)
-        self.assertEqual(input._most_common_oxi("Mg"), +2)
-        self.assertEqual(input._most_common_oxi("Si"), +4)
-        self.assertEqual(input._most_common_oxi("Ca"), +2)
-        self.assertEqual(input._most_common_oxi("Fe"), +3)
-        self.assertEqual(input._most_common_oxi("Ni"), 0)
-        self.assertEqual(input._most_common_oxi("Cu"), +1)
-        self.assertEqual(input._most_common_oxi("Ag"), +1)
-        self.assertEqual(input._most_common_oxi("Zn"), +2)
-        self.assertEqual(input._most_common_oxi("Pb"), +2)
-        self.assertEqual(input._most_common_oxi("Hg"), +2)
-        self.assertEqual(input._most_common_oxi("O"), -2)
-        self.assertEqual(input._most_common_oxi("S"), -2)
-        self.assertEqual(input._most_common_oxi("Se"), -2)
-        self.assertEqual(input._most_common_oxi("N"), -3)
+        self.assertEqual(input.most_common_oxi("Cd"), +2)
+        self.assertEqual(input.most_common_oxi("Te"), -2)
+        self.assertEqual(input.most_common_oxi("Cl"), -1)
+        self.assertEqual(input.most_common_oxi("Al"), +3)
+        self.assertEqual(input.most_common_oxi("Mg"), +2)
+        self.assertEqual(input.most_common_oxi("Si"), +4)
+        self.assertEqual(input.most_common_oxi("Ca"), +2)
+        self.assertEqual(input.most_common_oxi("Fe"), +3)
+        self.assertEqual(input.most_common_oxi("Ni"), 0)
+        self.assertEqual(input.most_common_oxi("Cu"), +1)
+        self.assertEqual(input.most_common_oxi("Ag"), +1)
+        self.assertEqual(input.most_common_oxi("Zn"), +2)
+        self.assertEqual(input.most_common_oxi("Pb"), +2)
+        self.assertEqual(input.most_common_oxi("Hg"), +2)
+        self.assertEqual(input.most_common_oxi("O"), -2)
+        self.assertEqual(input.most_common_oxi("S"), -2)
+        self.assertEqual(input.most_common_oxi("Se"), -2)
+        self.assertEqual(input.most_common_oxi("N"), -3)
         # no ICSD oxidation state in pymatgen for Au, At, so uses
         # element_obj.common_oxidation_states[0]:
-        self.assertEqual(input._most_common_oxi("Au"), 3)
-        self.assertEqual(input._most_common_oxi("At"), -1)
-        self.assertEqual(input._most_common_oxi("Po"), -2)
-        self.assertEqual(input._most_common_oxi("Ac"), +3)
-        self.assertEqual(input._most_common_oxi("Fr"), +1)
-        self.assertEqual(input._most_common_oxi("Ra"), +2)
+        self.assertEqual(input.most_common_oxi("Au"), 3)
+        self.assertEqual(input.most_common_oxi("At"), -1)
+        self.assertEqual(input.most_common_oxi("Po"), -2)
+        self.assertEqual(input.most_common_oxi("Ac"), +3)
+        self.assertEqual(input.most_common_oxi("Fr"), +1)
+        self.assertEqual(input.most_common_oxi("Ra"), +2)
 
     def test_get_sc_defect_coords(self):
         defect_entry = copy.deepcopy(self.V_Cd_entry)
@@ -1325,6 +1327,29 @@ class InputTestCase(unittest.TestCase):
         self.assertEqual(list(defect.site.frac_coords), list(subs["bulk_supercell_site"].frac_coords))
         self.assertEqual(str(defect.as_dict()["@class"].lower()), "substitution")
 
+    def test_oxidation_state_guessing(self):
+        # Check if most common oxidation state is used when multiple possible oxidation states
+        # are guessed for an element:
+        with patch("builtins.print") as mock_print:
+            with warnings.catch_warnings(record=True) as w:
+                dist = input.Distortions(
+                self.Fe3O4_defect_entry
+            )
+        warning_msg = w[-1].message
+        
+        self.assertEqual(
+            str(warning_msg), 
+            "Warning: Multiple oxidation states have been guessed for {'Fe'}. The most common "
+            "oxidation state will be used for these elements, which may not be appropriate!"
+        )
+        print(mock_print.call_args_list)  # for debugging
+        mock_print.assert_called_once_with(
+            "Oxidation states were not explicitly set, thus have been guessed as "
+            "{'Fe': 3, 'O': -2}. If this is unreasonable you should manually set "
+            "oxidation_states"
+        )
+        self.assertEqual(dist.oxidation_states, {"Fe": +3, "O": -2})
+        
     def test_Distortions_initialisation(self):
         # test auto oxidation state determination:
         for defect_list in [

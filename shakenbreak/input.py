@@ -596,7 +596,7 @@ def _get_defect_entry_from_defect(
     return defect_entry
 
 
-def _most_common_oxi(element) -> int:
+def most_common_oxi(element) -> int:
     """
     Convenience function to get the most common oxidation state of an element, using pymatgen's
     elemental data.
@@ -614,10 +614,10 @@ def _most_common_oxi(element) -> int:
     oxi_probabilities = [(k, v) for k, v in comp_obj.oxi_prob.items() if k.element == element_obj]
     if oxi_probabilities:  # not empty
         most_common = max(oxi_probabilities, key=lambda x: x[1])[0]  # breaks if icsd oxi states is empty
-        return most_common.oxi_state
+        return int(most_common.oxi_state)
 
     if element_obj.common_oxidation_states:
-        return element_obj.common_oxidation_states[0]  # known common oxidation state
+        return int(element_obj.common_oxidation_states[0])  # known common oxidation state
 
     # no known common oxidation state, make guess and warn user
     guess_oxi = element_obj.oxidation_states[0] if element_obj.oxidation_states else 0
@@ -628,8 +628,7 @@ def _most_common_oxi(element) -> int:
         f"`oxidation_states` input parameter for `Distortions` if this is unreasonable!"
     )
 
-    return guess_oxi
-
+    return int(guess_oxi)
 
 def _calc_number_electrons(
     defect_entry: DefectEntry,
@@ -1910,14 +1909,14 @@ class Distortions:
                     )
                     # Guess common oxidation state for multiple oxidation state elements
                     for elt in dupe_elts:
-                        likely_oxi = int(_most_common_oxi(elt))
+                        likely_oxi = most_common_oxi(elt)
                         guessed_oxidation_states[elt] = likely_oxi
                 return guessed_oxidation_states
             warnings.warn(
-                f"Oxidation states could not be guessed for the bulk structure. The most common"
+                f"Warning: Oxidation states could not be guessed for the bulk structure. The most common "
                 f"oxidation state for each element will be used, which may not be appropriate!"
             )
-            return {elt.symbol: int(_most_common_oxi(elt.symbol)) for elt in bulk_structure.elements}
+            return {elt.symbol: most_common_oxi(elt.symbol) for elt in bulk_structure.elements}
 
         # Oxidation guessing only if oxidation states are not fully supplied
         if not self.oxidation_states or not all(elt.symbol in self.oxidation_states for elt in defect_entry.defect.structure.elements):
@@ -1932,13 +1931,13 @@ class Distortions:
             if defect.site.specie.symbol not in guessed_oxidation_states:
                 # extrinsic substituting/interstitial species not in bulk composition
                 extrinsic_specie = defect.site.specie.symbol
-                likely_substitution_oxi = int(_most_common_oxi(extrinsic_specie))
+                likely_substitution_oxi = most_common_oxi(extrinsic_specie)
                 guessed_oxidation_states[extrinsic_specie] = likely_substitution_oxi
 
         if not self.oxidation_states:
             print(
-                f"Oxidation states were not explicitly set, thus have been guessed as"
-                f" {guessed_oxidation_states}. If this is unreasonable you should manually set "
+                f"Oxidation states were not explicitly set, thus have been guessed as "
+                f"{guessed_oxidation_states}. If this is unreasonable you should manually set "
                 f"oxidation_states"
             )
             self.oxidation_states = guessed_oxidation_states
