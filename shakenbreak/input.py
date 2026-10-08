@@ -288,10 +288,12 @@ def _write_distortion_metadata(
 def _create_vasp_input(
     defect_name: str,
     distorted_defect_dict: dict,
+    custom_set: str | None = None,
     user_incar_settings: dict | None = None,
     user_potcar_functional: str | None = "PBE",
     user_potcar_settings: dict | None = None,
     output_path: str = ".",
+    max_ediff: float = np.inf,
     **kwargs,
 ) -> str:
     r"""
@@ -318,6 +320,10 @@ def _create_vasp_input(
             Path to directory in which to write distorted defect structures and
             calculation inputs.
             (Default is current directory = "./")
+        max_ediff (float):
+            Maximum ``EDIFF`` (eV) when setting ``EDIFF`` from
+            ``EDIFF_PER_ATOM`` in ``user_incar_settings``.
+            (Default: ``np.inf``, no cap)
         **kwargs:
             Keyword arguments to pass to ``DefectDictSet.write_input()`` (e.g.
             ``potcar_spec``).
@@ -463,6 +469,7 @@ def _create_vasp_input(
     dds = DefectDictSet(  # create one DefectDictSet first, then just edit structure & comment for each
         single_defect_dict["Defect Structure"],
         charge_state=single_defect_dict["Charge State"],
+        custom_set=custom_set,
         user_incar_settings=incar_settings,
         user_kpoints_settings=Kpoints().from_dict(
             {
@@ -473,6 +480,7 @@ def _create_vasp_input(
         user_potcar_functional=user_potcar_functional,
         user_potcar_settings=potcar_settings,
         poscar_comment=None,
+        max_ediff=max_ediff,
     )
 
     for (
@@ -2462,8 +2470,10 @@ class Distortions:
         user_incar_settings: dict | None = None,
         user_potcar_functional: str | None = "PBE",
         user_potcar_settings: dict | None = None,
+        custom_set: str | None = None,
         output_path: str = ".",
         verbose: bool | None = None,
+        max_ediff: float = np.inf,
         **kwargs,
     ) -> tuple[dict, dict]:
         r"""
@@ -2500,6 +2510,10 @@ class Distortions:
             verbose (:obj:`bool`):
                 Whether to print distortion information (bond atoms and
                 distances). (Default: None -- medium level verbosity)
+            max_ediff (float):
+                Maximum ``EDIFF`` (eV) when setting ``EDIFF`` from
+                ``EDIFF_PER_ATOM`` in ``user_incar_settings``.
+                (Default: ``np.inf``, no cap)
             kwargs:
                 Additional keyword arguments to pass to ``_create_vasp_input()``
                 (Mainly for testing purposes).
@@ -2552,10 +2566,12 @@ class Distortions:
                 defect_folder_name = _create_vasp_input(  # folder name may change if any duplicates
                     defect_name=defect_species,
                     distorted_defect_dict=charged_defect_dict,
+                    custom_set=custom_set,
                     user_incar_settings=user_incar_settings,
                     user_potcar_functional=user_potcar_functional,
                     user_potcar_settings=user_potcar_settings,
                     output_path=output_path,
+                    max_ediff=max_ediff,
                     **kwargs,
                 )
                 self.write_distortion_metadata(
